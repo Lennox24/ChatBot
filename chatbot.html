@@ -1,0 +1,1401 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Asistente Virtual- Trámites IESTP Juan Velasco Alvarado</title>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <style>
+      /* 
+        ==============================
+        DEFINICIÓN DE VARIABLES CSS
+        ==============================
+        Variables globales que definen la identidad visual del IESTP Juan Velasco Alvarado
+        - Colores primarios y secundarios basados en el branding institucional
+        - Gradientes para efectos visuales atractivos
+        - Sombras y transparencias para el efecto "vidrio" moderno
+        */
+      :root {
+        /* Colores institucionales */
+        --primary-color: #1c2682; /* Azul oscuro principal de la institución */
+        --secondary-color: #283593; /* Azul secundario para degradados y acentos */
+        --accent-color: #ffae01; /* Naranja para elementos destacados */
+        --light-accent: #ffedb8; /* Naranja claro para fondos suaves */
+        --text-color: #333; /* Color de texto principal */
+        --light-text: #757575; /* Color de texto secundario */
+        --background-color: #fefefe; /* Fondo de la página */
+        --card-background: #ffffff; /* Fondo de tarjetas y elementos */
+        --success-color: #4caf50; /* Verde para mensajes de éxito */
+        --warning-color: #ff9800; /* Naranja para advertencias */
+        --error-color: #f44336; /* Rojo para errores */
+
+        /* Degradados utilizados en encabezados y botones */
+        --gradient-primary: linear-gradient(135deg, #1c2682, #283593);
+        --gradient-accent: linear-gradient(135deg, #ffae01, #ffc107);
+
+        /* Estilos para sombras y efecto vidrio */
+        --shadow-color: rgba(0, 0, 0, 0.1);
+        --glass-bg: rgba(
+          255,
+          255,
+          255,
+          0.85
+        ); /* Fondo semi-transparente para efecto vidrio */
+        --glass-border: rgba(
+          255,
+          255,
+          255,
+          0.18
+        ); /* Borde para el efecto vidrio */
+      }
+
+      /* 
+        ==============================
+        ESTILOS BÁSICOS
+        ==============================
+        Configuración general de la página
+        - Reset de márgenes y padding
+        - Fuente principal
+        - Estructura de la página
+        */
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Roboto", sans-serif;
+        background-color: var(--background-color);
+        color: var(--text-color);
+        overflow-x: hidden;
+        height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+
+      /* 
+        ==============================
+        CONTENEDOR PRINCIPAL
+        ==============================
+        Estructura central que contiene al chatbot
+        - Ocupa toda la altura y anchura de la ventana
+        - Centra el chatbot en la pantalla
+        */
+      .main-container {
+        width: 100%;
+        height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background-color: #fefefe;
+      }
+
+      /* 
+        ==============================
+        CHATBOT CONTAINER (PRINCIPAL)
+        ==============================
+        Contenedor principal del chatbot con todas sus funcionalidades
+        - Posicionamiento fijo en la esquina inferior derecha
+        - Efecto de vidrio (frosted glass) con transparencia
+        - Transiciones suaves para minimizar y expandir
+        - Soporte para arrastre y manipulación por el usuario
+        */
+      .chatbot-container {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        width: 350px;
+        height: 500px;
+        background: var(--glass-bg);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        border-radius: 12px;
+        box-shadow: 0 8px 32px rgba(31, 38, 135, 0.2);
+        border: 1px solid var(--glass-border);
+        display: flex;
+        flex-direction: column;
+        z-index: 1000;
+        transition: width 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55),
+          height 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55),
+          box-shadow 0.3s ease;
+        opacity: 1;
+        transform: scale(1);
+        user-select: none; /* Evita la selección de texto al arrastrar */
+      }
+
+      /* 
+        ==============================
+        ESTADOS DEL CHATBOT
+        ==============================
+        Definición de los estados del chatbot:
+        - minimizado: Versión compacta para ahorrar espacio
+        - oculto: Estado cuando el chatbot está cerrado
+        */
+      .chatbot-container.minimized {
+        width: 60px;
+        height: 60px;
+        background: var(--gradient-primary);
+        backdrop-filter: none;
+        -webkit-backdrop-filter: none;
+        border: none;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        cursor: move;
+        overflow: hidden;
+      }
+
+      .chatbot-container.minimized:hover {
+        transform: scale(1.05);
+        box-shadow: 0 6px 25px rgba(0, 0, 0, 0.4);
+      }
+
+      .chatbot-container.hidden {
+        opacity: 0;
+        transform: scale(0.8);
+        pointer-events: none;
+      }
+
+      /* 
+        ==============================
+        HEADER DEL CHATBOT
+        ==============================
+        Sección superior del chatbot que contiene:
+        - Título con icono
+        - Indicador de estado (con animación)
+        - Controles (minimizar, cerrar)
+        - Área de arrastre para mover el chatbot
+        */
+      .chatbot-header {
+        background: var(--gradient-primary);
+        color: white;
+        padding: 1rem;
+        border-radius: 12px 12px 0 0;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        cursor: move;
+        flex-shrink: 0;
+      }
+
+      .chatbot-container.minimized .chatbot-header {
+        padding: 0;
+        border-radius: 12px;
+        height: 100%;
+        justify-content: center;
+      }
+
+      .chatbot-header h3 {
+        font-size: 1.1rem;
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        transition: all 0.3s ease;
+      }
+
+      .chatbot-container.minimized .chatbot-header h3 {
+        display: none; /* Ocultar texto en estado minimizado */
+      }
+
+      .chatbot-header.status-indicator {
+        width: 10px;
+        height: 10px;
+        background-color: var(--success-color);
+        border-radius: 50%;
+        animation: pulse 2s infinite;
+      }
+
+      .chatbot-container.minimized .status-indicator {
+        display: none;
+      }
+
+      .chatbot-controls {
+        display: flex;
+        gap: 10px;
+        transition: all 0.3s ease;
+      }
+
+      .chatbot-container.minimized .chatbot-controls {
+        display: none; /* Ocultar botones en estado minimizado */
+      }
+
+      .chatbot-controls button {
+        background: none;
+        border: none;
+        color: white;
+        cursor: pointer;
+        font-size: 1.2rem;
+        transition: transform 0.2s;
+      }
+
+      .chatbot-controls button:hover {
+        transform: scale(1.2);
+      }
+
+      /* 
+        ==============================
+        CONTENIDO DEL CHATBOT
+        ==============================
+        Sección principal que contiene:
+        - Área de mensajes
+        - Sugerencias de preguntas
+        - Campo de entrada
+        */
+      .chatbot-content {
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+        overflow: hidden;
+        transition: opacity 0.3s ease;
+      }
+
+      .chatbot-container.minimized .chatbot-content {
+        opacity: 0;
+        pointer-events: none;
+        position: absolute;
+      }
+
+      .chatbot-messages {
+        flex: 1;
+        padding: 1rem;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+      }
+
+      .message {
+        max-width: 80%;
+        padding: 0.8rem 1rem;
+        border-radius: 18px;
+        line-height: 1.4;
+        background: var(--glass-bg);
+        backdrop-filter: blur(5px);
+        -webkit-backdrop-filter: blur(5px);
+        box-shadow: 0 2px 8px var(--shadow-color);
+        animation: messageSlide 0.3s ease-out;
+      }
+
+      @keyframes messageSlide {
+        from {
+          opacity: 0;
+          transform: translateY(10px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .message.bot {
+        background: rgba(255, 237, 184, 0.9);
+        align-self: flex-start;
+        border-bottom-left-radius: 4px;
+      }
+
+      .message.user {
+        background: rgba(28, 38, 130, 0.9);
+        color: white;
+        align-self: flex-end;
+        border-bottom-right-radius: 4px;
+      }
+
+      .message.timestamp {
+        font-size: 0.7rem;
+        opacity: 0.7;
+        margin-top: 5px;
+        text-align: right;
+      }
+
+      .correction-notice {
+        background-color: rgba(255, 152, 0, 0.15);
+        backdrop-filter: blur(5px);
+        -webkit-backdrop-filter: blur(5px);
+        border-left: 3px solid var(--warning-color);
+        padding: 0.5rem 0.8rem;
+        margin: 0.5rem 0;
+        border-radius: 0 8px 8px 0;
+        font-size: 0.85rem;
+        color: var(--warning-color);
+        animation: slideIn 0.3s ease-out;
+      }
+
+      @keyframes slideIn {
+        from {
+          opacity: 0;
+          transform: translateX(-20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateX(0);
+        }
+      }
+
+      .correction-notice i {
+        margin-right: 0.5rem;
+      }
+
+      .original-text {
+        text-decoration: line-through;
+        opacity: 0.7;
+        margin-right: 0.5rem;
+      }
+
+      .corrected-text {
+        font-weight: 500;
+      }
+
+      .chatbot-suggestions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        padding: 0 1rem;
+        margin-bottom: 10px;
+      }
+
+      .suggestion-chip {
+        background: var(--light-accent);
+        border: 1px solid var(--accent-color);
+        border-radius: 16px;
+        padding: 5px 12px;
+        font-size: 0.85rem;
+        cursor: pointer;
+        transition: all 0.2s;
+      }
+
+      .suggestion-chip:hover {
+        background: var(--accent-color);
+        color: white;
+        transform: translateY(-2px);
+      }
+
+      .chatbot-input-container {
+        padding: 1rem;
+        border-top: 1px solid rgba(224, 224, 224, 0.5);
+        display: flex;
+        gap: 10px;
+        background: var(--glass-bg);
+        backdrop-filter: blur(5px);
+        -webkit-backdrop-filter: blur(5px);
+      }
+
+      .chatbot-input {
+        flex: 1;
+        padding: 0.8rem;
+        border: 1px solid rgba(224, 224, 224, 0.5);
+        border-radius: 20px;
+        outline: none;
+        font-family: inherit;
+        background: rgba(255, 255, 255, 0.8);
+        backdrop-filter: blur(3px);
+        -webkit-backdrop-filter: blur(3px);
+      }
+
+      .chatbot-input:focus {
+        border-color: var(--accent-color);
+        background: rgba(255, 255, 255, 0.95);
+      }
+
+      .chatbot-send {
+        background: var(--gradient-accent);
+        color: white;
+        border: none;
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        cursor: pointer;
+        transition: all 0.2s;
+      }
+
+      .chatbot-send:hover {
+        transform: scale(1.05);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+      }
+
+      .typing-indicator {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        padding: 0.8rem 1rem;
+        background: var(--light-accent);
+        backdrop-filter: blur(5px);
+        -webkit-backdrop-filter: blur(5px);
+        border-radius: 18px;
+        width: fit-content;
+        margin-bottom: 1rem;
+      }
+
+      .typing-indicator span {
+        width: 8px;
+        height: 8px;
+        background-color: #999;
+        border-radius: 50%;
+        animation: typing 1.4s infinite;
+      }
+
+      .typing-indicator span:nth-child(2) {
+        animation-delay: 0.2s;
+      }
+
+      .typing-indicator span:nth-child(3) {
+        animation-delay: 0.4s;
+      }
+
+      @keyframes typing {
+        0%,
+        60%,
+        100% {
+          transform: translateY(0);
+        }
+        30% {
+          transform: translateY(-10px);
+        }
+      }
+
+      .new-message-badge {
+        position: absolute;
+        top: -5px;
+        right: -5px;
+        background: var(--error-color);
+        color: white;
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-size: 0.7rem;
+        font-weight: bold;
+        animation: bounce 1s infinite;
+      }
+
+      /* 
+        ==============================
+        NOTIFICACIONES
+        ==============================
+        Sistema de notificaciones para mensajes importantes
+        - Aparecen en la esquina superior derecha
+        - Tienen diferentes tipos (éxito, error, info, warning)
+        - Desaparecen automáticamente después de un tiempo
+        */
+      .notification {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: white;
+        padding: 1rem 1.5rem;
+        border-radius: 8px;
+        box-shadow: 0 3px 10px var(--shadow-color);
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        transform: translateX(120%);
+        transition: transform 0.3s ease-out;
+        z-index: 2000;
+        max-width: 350px;
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        background: var(--glass-bg);
+      }
+
+      .notification.show {
+        transform: translateX(0);
+      }
+
+      .notification i {
+        font-size: 1.5rem;
+        flex-shrink: 0;
+      }
+
+      .notification.success i {
+        color: var(--success-color);
+      }
+
+      .notification.error i {
+        color: var(--error-color);
+      }
+
+      .notification.info i {
+        color: var(--primary-color);
+      }
+
+      .notification.warning i {
+        color: var(--warning-color);
+      }
+
+      .notification-content {
+        flex: 1;
+      }
+
+      .notification-title {
+        font-weight: 600;
+        margin-bottom: 0.25rem;
+      }
+
+      .notification-message {
+        font-size: 0.9rem;
+        color: var(--text-color);
+      }
+
+      /* 
+        ==============================
+        RESPONSIVE DESIGN
+        ==============================
+        Ajustes para pantallas pequeñas
+        - El chatbot ocupa el ancho completo en móviles
+        - Posición ajustada para mejor experiencia en dispositivos móviles
+        */
+      @media (max-width: 768px) {
+        .chatbot-container {
+          width: calc(100% - 40px);
+          right: 20px;
+          left: 20px;
+        }
+
+        .chatbot-container.minimized {
+          width: 60px;
+          height: 60px;
+          right: 20px;
+          left: auto;
+        }
+
+        .notification {
+          right: 10px;
+          left: 10px;
+          max-width: none;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="main-container">
+      <!-- Contenedor principal vacío -->
+    </div>
+
+    <!-- 
+    ==============================
+    CHATBOT PRINCIPAL
+    ==============================
+    Componente único del chatbot con todas sus funcionalidades:
+    - Header con controles
+    - Área de mensajes
+    - Sugerencias de preguntas
+    - Campo de entrada
+    - Indicador de nuevos mensajes
+    -->
+    <div class="chatbot-container" id="chatbotContainer">
+      <div class="chatbot-header" id="chatbotHeader">
+        <h3><i class="fas fa-robot"></i> Asistente ConectAI-JVA</h3>
+        <div class="status-indicator"></div>
+        <div class="chatbot-controls">
+          <button id="minimizeChatbot"><i class="fas fa-minus"></i></button>
+          <button id="closeChatbot"><i class="fas fa-times"></i></button>
+        </div>
+      </div>
+
+      <div class="chatbot-content">
+        <div class="chatbot-messages" id="chatbotMessages">
+          <!-- Los mensajes se agregarán aquí dinámicamente -->
+        </div>
+        <div class="chatbot-suggestions" id="chatbotSuggestions">
+          <div class="suggestion-chip" data-message="matrícula">Matrícula</div>
+          <div class="suggestion-chip" data-message="traslado">Traslado</div>
+          <div class="suggestion-chip" data-message="reserva">
+            Reserva de matrícula
+          </div>
+          <div class="suggestion-chip" data-message="reincorporación">
+            Reincorporación
+          </div>
+          <div class="suggestion-chip" data-message="cambio de turno">
+            Cambio de turno
+          </div>
+          <div class="suggestion-chip" data-message="titulación">
+            Titulación
+          </div>
+        </div>
+        <div class="chatbot-input-container">
+          <input
+            type="text"
+            class="chatbot-input"
+            id="chatbotInput"
+            placeholder="Escribe tu consulta..."
+          />
+          <button class="chatbot-send" id="chatbotSend">
+            <i class="fas fa-paper-plane"></i>
+          </button>
+        </div>
+      </div>
+
+      <div class="new-message-badge" id="newMessageBadge" style="display: none">
+        0
+      </div>
+    </div>
+
+    <!-- 
+    ==============================
+    SISTEMA DE NOTIFICACIONES
+    ==============================
+    Componente para mostrar mensajes importantes al usuario
+    - Posicionado en esquina superior derecha
+    - Puede mostrar diferentes tipos de mensajes
+    - Se despliega y se oculta con animación
+    -->
+    <div class="notification" id="notification">
+      <i class="fas fa-info-circle"></i>
+      <div class="notification-content">
+        <div class="notification-title" id="notificationTitle">Título</div>
+        <div class="notification-message" id="notificationMessage">Mensaje</div>
+      </div>
+    </div>
+
+    <script>
+      // ==============================
+      // INICIALIZACIÓN DEL CHATBOT
+      // ==============================
+      // Configuración inicial del chatbot y definición de variables globales
+      document.addEventListener("DOMContentLoaded", function () {
+        // Variables de elementos del DOM
+        const chatbotContainer = document.getElementById("chatbotContainer");
+        const chatbotHeader = document.getElementById("chatbotHeader");
+        const chatbotMessages = document.getElementById("chatbotMessages");
+        const chatbotInput = document.getElementById("chatbotInput");
+        const chatbotSend = document.getElementById("chatbotSend");
+        const chatbotSuggestions =
+          document.getElementById("chatbotSuggestions");
+        const minimizeChatbot = document.getElementById("minimizeChatbot");
+        const closeChatbot = document.getElementById("closeChatbot");
+        const newMessageBadge = document.getElementById("newMessageBadge");
+        const notification = document.getElementById("notification");
+        const notificationTitle = document.getElementById("notificationTitle");
+        const notificationMessage = document.getElementById(
+          "notificationMessage"
+        );
+
+        // Estado del chatbot
+        let isMinimized = false; // Indica si el chatbot está minimizado
+        let isHidden = false; // Indica si el chatbot está cerrado
+        let unreadMessages = 0; // Contador de mensajes no leídos
+        let isProcessing = false; // Indica si el chatbot está procesando un mensaje
+
+        // ==============================
+        // LÓGICA DE ARRASTRE DEL CHATBOT
+        // ==============================
+        // Permite al usuario mover el chatbot por la pantalla
+        let isDragging = false;
+        let dragStartTime = 0;
+        const dragThreshold = 5; // Umbral para diferenciar clic de arrastre
+
+        let elementX = 0,
+          elementY = 0; // Posición del elemento
+        let initialX = 0,
+          initialY = 0; // Posición inicial del ratón/touch
+
+        // Limita la posición del chatbot dentro de la ventana
+        function constrainToWindow(element, x, y) {
+          const rect = element.getBoundingClientRect();
+          const maxX = window.innerWidth - rect.width;
+          const maxY = window.innerHeight - rect.height;
+          return {
+            x: Math.max(0, Math.min(x, maxX)),
+            y: Math.max(0, Math.min(y, maxY)),
+          };
+        }
+
+        // Inicia el proceso de arrastre
+        function startDrag(e) {
+          // Solo se puede arrastrar por el header
+          if (!e.target.closest(".chatbot-header")) return;
+
+          isDragging = false;
+          dragStartTime = Date.now();
+
+          const rect = chatbotContainer.getBoundingClientRect();
+          elementX = rect.left;
+          elementY = rect.top;
+
+          if (e.type === "mousedown") {
+            initialX = e.clientX - elementX;
+            initialY = e.clientY - elementY;
+          } else if (e.type === "touchstart") {
+            initialX = e.touches[0].clientX - elementX;
+            initialY = e.touches[0].clientY - elementY;
+          }
+
+          chatbotContainer.style.transition = "none";
+        }
+
+        // Maneja el movimiento durante el arrastre
+        function drag(e) {
+          if (dragStartTime === 0) return;
+
+          let clientX, clientY;
+          if (e.type === "mousemove") {
+            clientX = e.clientX;
+            clientY = e.clientY;
+          } else if (e.type === "touchmove") {
+            clientX = e.touches[0].clientX;
+            clientY = e.touches[0].clientY;
+          }
+
+          const deltaX = clientX - initialX - elementX;
+          const deltaY = clientY - initialY - elementY;
+          const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+
+          if (distance > dragThreshold) {
+            isDragging = true;
+            e.preventDefault();
+          }
+
+          if (isDragging) {
+            let newX = clientX - initialX;
+            let newY = clientY - initialY;
+
+            const constrainedPos = constrainToWindow(
+              chatbotContainer,
+              newX,
+              newY
+            );
+
+            chatbotContainer.style.left = `${constrainedPos.x}px`;
+            chatbotContainer.style.top = `${constrainedPos.y}px`;
+            chatbotContainer.style.right = "auto";
+            chatbotContainer.style.bottom = "auto";
+          }
+        }
+
+        // Finaliza el arrastre
+        function endDrag(e) {
+          if (dragStartTime === 0) return;
+
+          const dragEndTime = Date.now();
+          const dragDuration = dragEndTime - dragStartTime;
+
+          chatbotContainer.style.transition = "";
+
+          // Lógica de Clic vs. Arrastre
+          if (!isDragging && dragDuration < 200) {
+            // Si fue un clic rápido y no un arrastre...
+            if (isMinimized) {
+              // ...y el chatbot está minimizado, restaurarlo.
+              restoreChatbot();
+            }
+          }
+
+          // Resetear estado de arrastre
+          isDragging = false;
+          dragStartTime = 0;
+        }
+
+        // Restaura el chatbot a su tamaño completo
+        function restoreChatbot() {
+          chatbotContainer.classList.remove("minimized", "hidden");
+          isMinimized = false;
+          isHidden = false;
+          unreadMessages = 0;
+          if (newMessageBadge) newMessageBadge.style.display = "none";
+        }
+
+        // Asignar eventos de arrastre al documento
+        document.addEventListener("mousedown", startDrag);
+        document.addEventListener("mousemove", drag);
+        document.addEventListener("mouseup", endDrag);
+        document.addEventListener("touchstart", startDrag);
+        document.addEventListener("touchmove", drag);
+        document.addEventListener("touchend", endDrag);
+
+        // ==============================
+        // SISTEMA DE CORRECCIÓN DE TEXTO
+        // ==============================
+        // Corrige errores tipográficos en las consultas del usuario
+        // Utiliza el algoritmo de Levenshtein para comparar palabras
+
+        // Calcula la distancia de Levenshtein entre dos cadenas
+        function levenshteinDistance(str1, str2) {
+          const matrix = [];
+
+          for (let i = 0; i <= str2.length; i++) {
+            matrix[i] = [i];
+          }
+
+          for (let j = 0; j <= str1.length; j++) {
+            matrix[0][j] = j;
+          }
+
+          for (let i = 1; i <= str2.length; i++) {
+            for (let j = 1; j <= str1.length; j++) {
+              if (str2.charAt(i - 1) === str1.charAt(j - 1)) {
+                matrix[i][j] = matrix[i - 1][j - 1];
+              } else {
+                matrix[i][j] = Math.min(
+                  matrix[i - 1][j - 1] + 1,
+                  matrix[i][j - 1] + 1,
+                  matrix[i - 1][j] + 1
+                );
+              }
+            }
+          }
+
+          return matrix[str2.length][str1.length];
+        }
+
+        // Encuentra la mejor coincidencia en el diccionario
+        function findBestMatch(word, dictionary) {
+          let bestMatch = null;
+          let bestDistance = Infinity;
+
+          for (const [correct, variations] of Object.entries(dictionary)) {
+            for (const variation of variations) {
+              const distance = levenshteinDistance(
+                word.toLowerCase(),
+                variation.toLowerCase()
+              );
+
+              if (
+                distance < bestDistance &&
+                distance <= Math.max(1, Math.floor(word.length * 0.3))
+              ) {
+                bestDistance = distance;
+                bestMatch = correct;
+              }
+            }
+          }
+
+          return bestMatch;
+        }
+
+        // Sistema de corrección mejorado y más preciso
+        function advancedCorrection(text) {
+          const originalText = text;
+          let correctedText = text;
+          const corrections = [];
+
+          // Diccionario de términos académicos y administrativos del instituto
+          const dictionary = {
+            matrícula: ["matricula"],
+            traslado: ["traslado"],
+            reserva: ["reserva"],
+            reincorporación: ["reincorporacion"],
+            titulación: ["titulacion"],
+            banco: ["banco"],
+            nación: ["nacion"],
+            cuenta: ["cuenta"],
+            voucher: ["voucher"],
+            tesorería: ["tesoreria"],
+            secretaría: ["secretaria"],
+            académica: ["academica"],
+            dirección: ["direccion"],
+            costo: ["costo"],
+            procedimiento: ["procedimiento"],
+            requisitos: ["requisitos"],
+            documento: ["documento"],
+            pago: ["pago"],
+            depósito: ["deposito"],
+            créditos: ["creditos"],
+            semestre: ["semestre"],
+            módulo: ["modulo"],
+            "unidades didácticas": ["unidades didacticas"],
+            "experiencias formativas": ["experiencias formativas"],
+            constancia: ["constancia"],
+            certificado: ["certificado"],
+            resolución: ["resolucion"],
+            directoral: ["directoral"],
+            expedito: ["expedito"],
+            bachiller: ["bachiller"],
+            título: ["titulo"],
+            técnico: ["tecnico"],
+            grado: ["grado"],
+            egresado: ["egresado"],
+            convalidación: ["convalidacion"],
+            licencia: ["licencia"],
+            repitencia: ["repitencia"],
+            exonerado: ["exonerado"],
+            deportista: ["deportista"],
+            artista: ["artista"],
+            calificado: ["calificado"],
+            instituto: ["instituto"],
+            educación: ["educacion"],
+            superior: ["superior"],
+            tecnológico: ["tecnologico"],
+            público: ["publico"],
+            juan: ["juan"],
+            velasco: ["velasco"],
+            alvarado: ["alvarado"],
+            villa: ["villa"],
+            maría: ["maria"],
+            triunfo: ["triunfo"],
+            lima: ["lima"],
+            perú: ["peru"],
+          };
+
+          // Solo corregir palabras que estén claramente mal escritas
+          const words = correctedText.split(/\s+/);
+
+          for (let i = 0; i < words.length; i++) {
+            const originalWord = words[i]
+              .toLowerCase()
+              .replace(/[.,!?;:]/g, "");
+
+            // No corregir palabras cortas o que ya parezcan correctas
+            if (originalWord.length < 3 || originalWord.length > 15) continue;
+
+            const bestMatch = findBestMatch(originalWord, dictionary);
+
+            // Solo corregir si la coincidencia es muy buena
+            if (bestMatch && bestMatch !== originalWord) {
+              const distance = levenshteinDistance(originalWord, bestMatch);
+
+              // Solo corregir si el error es pequeño (máximo 1 o 2 caracteres)
+              if (
+                distance <= 2 &&
+                distance <= Math.floor(originalWord.length * 0.2)
+              ) {
+                corrections.push({
+                  original: words[i],
+                  corrected: bestMatch,
+                });
+                words[i] = words[i].replace(originalWord, bestMatch);
+              }
+            }
+          }
+
+          correctedText = words.join("");
+
+          return {
+            correctedText,
+            corrections,
+          };
+        }
+
+        // ==============================
+        // SISTEMA DE MENSAJES Y NOTIFICACIONES
+        // ==============================
+        // Gestiona la visualización de mensajes y notificaciones
+
+        // Muestra una notificación al usuario
+        function showNotification(
+          title,
+          message,
+          type = "info",
+          duration = 4000
+        ) {
+          if (notificationTitle && notificationMessage) {
+            notificationTitle.textContent = title;
+            notificationMessage.textContent = message;
+
+            // Cambiar icono según el tipo
+            const icon = notification.querySelector("i");
+            icon.className =
+              type === "success"
+                ? "fas fa-check-circle"
+                : type === "error"
+                ? "fas fa-exclamation-circle"
+                : type === "warning"
+                ? "fas fa-exclamation-triangle"
+                : "fas fa-info-circle";
+
+            notification.className = `notification ${type} show`;
+
+            setTimeout(() => {
+              notification.classList.remove("show");
+            }, duration);
+          }
+        }
+
+        // Añade un mensaje al chatbot
+        function addMessage(message, isUser = false, corrections = null) {
+          if (!chatbotMessages) return;
+
+          const messageDiv = document.createElement("div");
+          messageDiv.className = `message ${isUser ? "user" : "bot"}`;
+          const messageBubble = document.createElement("div");
+          messageBubble.className = "message-bubble";
+
+          // Dividir el mensaje en párrafos si contiene saltos de línea
+          const paragraphs = message.split("\n");
+          paragraphs.forEach((paragraph) => {
+            if (paragraph.trim()) {
+              const p = document.createElement("div");
+              p.textContent = paragraph;
+              messageBubble.appendChild(p);
+            }
+          });
+
+          messageDiv.appendChild(messageBubble);
+
+          // Si hay correcciones, mostrarlas
+          if (corrections && corrections.length > 0) {
+            const correctionNotice = document.createElement("div");
+            correctionNotice.className = "correction-notice";
+            correctionNotice.style.marginTop = "5px";
+            correctionNotice.style.fontSize = "0.85rem";
+            correctionNotice.style.color = "#666";
+            let correctionsText = "He corregido:";
+
+            corrections.forEach((correction, index) => {
+              correctionsText += `"${correction.original}" → "${correction.corrected}"`;
+              if (index < corrections.length - 1) {
+                correctionsText += ",";
+              }
+            });
+
+            correctionNotice.textContent = correctionsText;
+            messageBubble.appendChild(correctionNotice);
+          }
+
+          const timestamp = document.createElement("div");
+          timestamp.className = "timestamp";
+          timestamp.textContent = "Justo ahora";
+
+          messageDiv.appendChild(timestamp);
+
+          chatbotMessages.appendChild(messageDiv);
+          chatbotMessages.scrollTop = chatbotMessages.scrollHeight;
+
+          // Si está minimizado, mostrar notificación de nuevo mensaje
+          if (isMinimized && !isUser) {
+            unreadMessages++;
+            if (newMessageBadge) {
+              newMessageBadge.textContent =
+                unreadMessages > 9 ? "9+" : unreadMessages;
+              newMessageBadge.style.display = "flex";
+            }
+          }
+        }
+
+        // Muestra el indicador de escritura (animación)
+        function showTypingIndicator() {
+          if (!chatbotMessages) return;
+
+          const typingDiv = document.createElement("div");
+          typingDiv.className = "typing-indicator";
+          typingDiv.id = "typingIndicator";
+
+          for (let i = 0; i < 3; i++) {
+            const span = document.createElement("span");
+            typingDiv.appendChild(span);
+          }
+
+          chatbotMessages.appendChild(typingDiv);
+          chatbotMessages.scrollTop = chatbotMessages.scrollHeight;
+        }
+
+        // Oculta el indicador de escritura
+        function hideTypingIndicator() {
+          const typingIndicator = document.getElementById("typingIndicator");
+          if (typingIndicator) {
+            typingIndicator.remove();
+          }
+        }
+
+        // ==============================
+        // PROCESAMIENTO DE MENSAJES
+        // ==============================
+        // Analiza las consultas del usuario y genera respuestas apropiadas
+
+        // Procesa el mensaje del usuario
+        function processUserMessage(message) {
+          // Evitar duplicación de mensajes
+          if (isProcessing) return;
+          isProcessing = true;
+
+          // Corregir el mensaje
+          const { correctedText, corrections } = advancedCorrection(message);
+
+          // Añadir el mensaje del usuario
+          addMessage(correctedText, true);
+
+          // Mostrar indicador de escritura
+          showTypingIndicator();
+
+          // Simular tiempo de respuesta
+          setTimeout(() => {
+            hideTypingIndicator();
+            isProcessing = false; // Restablecer el estado de procesamiento
+
+            // Procesar la respuesta
+            processTramitesResponse(correctedText, corrections);
+          }, 1000 + Math.random() * 1000);
+        }
+
+        // Procesa las respuestas sobre trámites académicos
+        function processTramitesResponse(message, corrections) {
+          const lowerMessage = message.toLowerCase();
+
+          // Respuestas sobre matrícula
+          if (
+            lowerMessage.includes("matrícula") ||
+            lowerMessage.includes("matricula")
+          ) {
+            if (
+              lowerMessage.includes("ratificación") ||
+              lowerMessage.includes("ratificacion")
+            ) {
+              addMessage(
+                "Para el proceso de ratificación de matrícula:\n\nCosto: S/. 200.00\n\nProcedimiento:\n1. Verifica tu situación académica en la plataforma REGISTRA\n2. Realiza el depósito de S/. 200.00 en el Banco de la Nación, Cuenta Corriente N° 0000289051\n3. Canjea el voucher en Tesorería para obtener tu RECIBO DE CAJA\n4. Acércate a la oficina de Secretaría Académica con tu RECIBO DE CAJA y una fotografía tamaño carné\n5. Llena el libro de registro de matrícula\n6. Espera 15 días hábiles para que tus datos sean registrados en el sistema REGISTRA\n\nSi obtuviste el primer puesto de tu salón, estás exonerado del pago. Deberás realizar un depósito de S/. 20.00 por concepto de Resolución Directoral por Primeros Puestos.",
+                false,
+                corrections
+              );
+            } else if (
+              lowerMessage.includes("extemporánea") ||
+              lowerMessage.includes("extemporanea")
+            ) {
+              addMessage(
+                "Para el proceso de ratificación de matrícula extemporánea:\n\nCosto: S/. 260.00\n\nProcedimiento:\n1. Verifica tu situación académica en la plataforma REGISTRA\n2. Realiza el depósito de S/. 260.00 en el Banco de la Nación, Cuenta Corriente N° 0000289051\n3. Canjea el voucher en Tesorería para obtener tu RECIBO DE CAJA\n4. Acércate a la oficina de Secretaría Académica con tu RECIBO DE CAJA y una fotografía tamaño carné\n5. Llena el libro de registro de matrícula\n6. Espera 15 días hábiles para que tus datos sean registrados en el sistema REGISTRA\n\nLas fechas para matrícula extemporánea son del 31 de marzo al 4 de abril de 2025 para el semestre 2025-I, y del 1 al 5 de septiembre de 2025 para el semestre 2025-II.",
+                false,
+                corrections
+              );
+            } else if (
+              lowerMessage.includes("unidad didáctica") ||
+              lowerMessage.includes("unidad didactica")
+            ) {
+              addMessage(
+                "Para el proceso de matrícula por unidad didáctica:\n\nCosto: S/. 50.00 por cada unidad didáctica\n\nProcedimiento:\n1. Realiza el depósito de S/. 50.00 por cada unidad didáctica en el Banco de la Nación, Cuenta Corriente N° 0000289051\n2. Canjea el voucher en Tesorería para obtener tu RECIBO DE CAJA\n3. Solicita mediante Formulario Único de Trámite (FUT) la matrícula de las unidades didácticas\n4. Espera la confirmación en la plataforma REGISTRA\n\nLas fechas para matrícula por unidad didáctica son del 3 al 28 de marzo de 2025 para el semestre 2025-I, y del 25 al 29 de agosto de 2025 para el semestre 2025-II.",
+                false,
+                corrections
+              );
+            } else {
+              addMessage(
+                "Para el proceso de matrícula regular:\n\nCosto: S/. 200.00\n\nProcedimiento:\n1. Verifica tu situación académica en la plataforma REGISTRA\n2. Realiza el depósito de S/. 200.00 en el Banco de la Nación, Cuenta Corriente N° 0000289051\n3. Canjea el voucher en Tesorería para obtener tu RECIBO DE CAJA\n4. Acércate a la oficina de Secretaría Académica con tu RECIBO DE CAJA y una fotografía tamaño carné\n5. Llena el libro de registro de matrícula\n6. Espera 15 días hábiles para que tus datos sean registrados en el sistema REGISTRA\n\nLas fechas para ratificación de matrícula regular son del 3 al 28 de marzo de 2025 para el semestre 2025-I, y del 25 al 29 de agosto de 2025 para el semestre 2025-II.",
+                false,
+                corrections
+              );
+            }
+          }
+          // Respuestas sobre traslado
+          else if (lowerMessage.includes("traslado")) {
+            if (lowerMessage.includes("interno")) {
+              addMessage(
+                "Para el proceso de traslado interno (cambio de especialidad):\n\nCosto: S/. 150.00 (solo si la solicitud es aprobada)\n\nProcedimiento:\n1. Presenta el Formulario Único de Trámite en mesa de partes, especificando tu carrera, semestre y turno actual, así como la carrera y turno a donde deseas cambiar\n2. Adjunta copia de DNI, constancia de no adeudar y certificado de estudios o constancia de notas aprobadas del último módulo\n3. Espera la revisión de tu solicitud (25 de marzo de 2025 para 2025-I, 26 de agosto de 2025 para 2025-II)\n4. Si tu solicitud es aprobada, realiza el pago de S/. 150.00 en el Banco de la Nación, Cuenta Corriente N° 0000289051\n5. Canjea el voucher en Tesorería y presenta tu RECIBO DE CAJA en Secretaría Académica\n\nLas fechas para presentar solicitudes son del 3 al 21 de marzo de 2025 para 2025-I, y del 25 de julio al 22 de agosto de 2025 para 2025-II.",
+                false,
+                corrections
+              );
+            } else if (lowerMessage.includes("externo")) {
+              addMessage(
+                "Para el proceso de traslado externo:\n\nCostos:\n- Constancia de vacante: S/. 20.00\n- Traslado de instituto público: S/. 150.00\n- Traslado de instituto privado: S/. 250.00\n- Matrícula: S/. 200.00\n\nProcedimiento:\n1. Acércate a Secretaría Académica para verificar compatibilidad de planes de estudio y vacantes disponibles\n2. Presenta el Formulario Único de Trámite en mesa de partes solicitando constancia de vacante\n3. Adjunta copia de DNI, recibo de pago de S/. 20.00 y copia de boletas de notas\n4. Espera la revisión de tu solicitud (25 de marzo de 2025 para 2025-I, 26 de agosto de 2025 para 2025-II)\n5. Una vez aprobada, presenta la solicitud de traslado externo con:\n - Copia de DNI\n - Constancia de vacante\n - Certificado de estudios del instituto de procedencia\n - Certificado de estudios secundarios\n - Resolución de autorización de traslado\n - Recibo de pago por traslado externo\n - Recibo de pago por matrícula\n\nLas fechas para presentar solicitudes son del 3 al 21 de marzo de 2025 para 2025-I, y del 25 de julio al 22 de agosto de 2025 para 2025-II.",
+                false,
+                corrections
+              );
+            } else {
+              addMessage(
+                "Hay dos tipos de traslado: interno y externo. ¿Sobre cuál te gustaría recibir información?",
+                false,
+                corrections
+              );
+            }
+          }
+          // Respuestas sobre reserva de matrícula
+          else if (lowerMessage.includes("reserva")) {
+            addMessage(
+              "Para el proceso de reserva de matrícula:\n\nCosto: S/. 80.00\n\nProcedimiento:\n1. Realiza primero la ratificación de tu matrícula en el semestre que te corresponde\n2. Presenta el Formulario Único de Trámite en mesa de partes indicando el motivo de la reserva\n3. Especifica tu carrera, semestre y turno donde estás matriculado\n4. Adjunta copia de DNI, constancia de no adeudar y recibo de pago de S/. 80.00\n5. Espera la Resolución Directoral Institucional que aprueba tu reserva\n\nPuedes solicitar reserva de matrícula hasta por un período máximo de 2 años. Las fechas para presentar solicitudes son del 3 al 28 de marzo de 2025 para 2025-I, y del 25 al 29 de agosto de 2025 para 2025-II.",
+              false,
+              corrections
+            );
+          }
+          // Respuestas sobre reincorporación
+          else if (
+            lowerMessage.includes("reincorporación") ||
+            lowerMessage.includes("reincorporacion")
+          ) {
+            addMessage(
+              "Para el proceso de reincorporación:\n\nCosto: S/. 80.00 (solo si la solicitud es aprobada)\n\nProcedimiento:\n1. Completa el Formulario Único de Trámite en mesa de partes mencionando el motivo de la reincorporación (repitencia, reserva, licencia u otros)\n2. Especifica tu carrera, semestre y turno donde deseas reincorporarte\n3. Adjunta copia de DNI, constancia de no adeudar y última boleta informativa de notas o copia de resolución de reserva\n4. Espera la revisión de tu solicitud (25 de marzo de 2025 para 2025-I, 26 de agosto de 2025 para 2025-II)\n5. Si tu solicitud es aprobada, realiza el pago de S/. 80.00 en el Banco de la Nación, Cuenta Corriente N° 0000289051\n6. Canjea el voucher en Tesorería y presenta tu RECIBO DE CAJA en Secretaría Académica\n\nLas fechas para presentar solicitudes son del 3 al 21 de marzo de 2025 para 2025-I, y del 25 de julio al 22 de agosto de 2025 para 2025-II.",
+              false,
+              corrections
+            );
+          }
+          // Respuestas sobre cambio de turno
+          else if (lowerMessage.includes("cambio de turno")) {
+            addMessage(
+              "Para el proceso de cambio de turno:\n\nCosto: S/. 80.00 (solo si la solicitud es aprobada)\n\nProcedimiento:\n1. Presenta el Formulario Único de Trámite en mesa de partes, especificando tu carrera, semestre y turno actual, así como el turno al que deseas cambiar\n2. Adjunta copia de DNI, constancia de no adeudar y documento que sustente el motivo del cambio\n3. Espera la revisión de tu solicitud (25 de marzo de 2025 para 2025-I, 26 de agosto de 2025 para 2025-II)\n4. Si tu solicitud es aprobada, realiza el pago de S/. 80.00 en el Banco de la Nación, Cuenta Corriente N° 0000289051\n5. Canjea el voucher en Tesorería y presenta tu RECIBO DE CAJA en Secretaría Académica\n\nLas fechas para presentar solicitudes son del 3 al 21 de marzo de 2025 para 2025-I, y del 25 de julio al 22 de agosto de 2025 para 2025-II. La aprobación dependerá de la cantidad de vacantes disponibles por salón.",
+              false,
+              corrections
+            );
+          }
+          // Respuestas sobre titulación
+          else if (
+            lowerMessage.includes("titulación") ||
+            lowerMessage.includes("titulacion")
+          ) {
+            addMessage(
+              "Para el proceso de titulación:\n\nCostos:\n- Derecho de titulación: S/. 450.00\n- Resolución Directoral de Expedito: S/. 80.00\n\nProcedimiento:\n1. Realiza el pago de S/. 450.00 por derecho de titulación en el Banco de la Nación, Cuenta Corriente N° 0000289051\n2. Canjea el voucher en Tesorería para obtener tu RECIBO DE CAJA\n3. Presenta tu solicitud en Secretaría Académica con los siguientes requisitos:\n - Copia de DNI\n - Grado de Bachiller o Título Técnico\n - Certificados de estudios\n - Recibo de pago por derecho de titulación\n4. Espera la Resolución Directoral de Expedito (costo adicional: S/. 80.00)\n\nEl proceso completo puede tomar entre 2 a 3 meses dependiendo de la documentación presentada.",
+              false,
+              corrections
+            );
+          }
+          // Respuestas sobre cuenta bancaria
+          else if (
+            lowerMessage.includes("cuenta") ||
+            lowerMessage.includes("banco") ||
+            lowerMessage.includes("pago") ||
+            lowerMessage.includes("depósito") ||
+            lowerMessage.includes("deposito")
+          ) {
+            addMessage(
+              "Para realizar los pagos de los trámites, debes depositar en:\n\nBanco de la Nación\nCuenta Corriente N° 0000289051\n\nUna vez realizado el depósito, debes canjear el voucher en la oficina de Tesorería del instituto para obtener tu RECIBO DE CAJA, que será necesario para completar el trámite correspondiente.\n\n¿Necesitas información sobre algún trámite específico?",
+              false,
+              corrections
+            );
+          }
+          // Respuestas sobre canje de voucher
+          else if (
+            lowerMessage.includes("canjear") ||
+            lowerMessage.includes("voucher")
+          ) {
+            addMessage(
+              "Para canjear tu voucher de pago:\n\n1. Dirígete a la oficina de Tesorería del IESTP Juan Velasco Alvarado\n2. Presenta el voucher original del depósito realizado en el Banco de la Nación\n3. El personal de Tesorería verificará el pago y te entregará el RECIBO DE CAJA correspondiente\n4. Este RECIBO DE CAJA es el documento que debes presentar en la oficina de Secretaría Académica para completar tu trámite\n\nLa oficina de Tesorería se encuentra en el mismo local del instituto y su horario de atención es de lunes a viernes en horario administrativo.\n\n¿Necesitas información sobre algún otro paso del proceso?",
+              false,
+              corrections
+            );
+          }
+          // Respuestas sobre requisitos
+          else if (lowerMessage.includes("requisitos")) {
+            addMessage(
+              "Los requisitos varían según el trámite que necesites realizar. Aquí te menciono los más comunes:\n\nPara matrícula:\n- RECIBO DE CAJA por concepto de matrícula\n- Fotografía tamaño carné\n\nPara traslado interno:\n- Copia de DNI\n- Constancia de no adeudar\n- Certificado de estudios o constancia de notas aprobadas\n\nPara traslado externo:\n- Copia de DNI\n- Constancia de vacante\n- Certificado de estudios del instituto de procedencia\n- Certificado de estudios secundarios\n- Resolución de autorización de traslado\n\nPara reserva de matrícula:\n- Copia de DNI\n- Constancia de no adeudar\n- RECIBO DE CAJA por concepto de reserva\n\nPara reincorporación:\n- Copia de DNI\n- Constancia de no adeudar\n- Última boleta informativa de notas o resolución de reserva\n\nPara cambio de turno:\n- Copia de DNI\n- Constancia de no adeudar\n- Documento que sustente el motivo del cambio\n\n¿Necesitas información detallada sobre algún trámite específico?",
+              false,
+              corrections
+            );
+          }
+          // Respuestas sobre costos
+          else if (
+            lowerMessage.includes("costo") ||
+            lowerMessage.includes("precio") ||
+            lowerMessage.includes("monto")
+          ) {
+            addMessage(
+              "Aquí te presento los costos de los principales trámites:\n\nMatrícula regular: S/. 200.00\nMatrícula extemporánea: S/. 260.00\nMatrícula por unidad didáctica: S/. 50.00 por cada unidad\nReserva de matrícula: S/. 80.00\nReincorporación: S/. 80.00\nCambio de turno: S/. 80.00\nTraslado interno: S/. 150.00\nTraslado externo (instituto público): S/. 150.00\nTraslado externo (instituto privado): S/. 250.00\nConstancia de vacante: S/. 20.00\nDerecho de titulación: S/. 450.00\nResolución Directoral de Expedito: S/. 80.00\n\nTodos los pagos deben realizarse en el Banco de la Nación, Cuenta Corriente N° 0000289051.\n\n¿Necesitas información sobre el procedimiento de algún trámite específico?",
+              false,
+              corrections
+            );
+          }
+          // Respuestas sobre fechas
+          else if (
+            lowerMessage.includes("fechas") ||
+            lowerMessage.includes("plazo") ||
+            lowerMessage.includes("cuándo") ||
+            lowerMessage.includes("cuando")
+          ) {
+            addMessage(
+              "Aquí te presento las fechas importantes para el 2025:\n\nMatrícula regular 2025-I: 3 al 28 de marzo\nMatrícula extemporánea 2025-I: 31 de marzo al 4 de abril\nMatrícula regular 2025-II: 25 al 29 de agosto\nMatrícula extemporánea 2025-II: 1 al 5 de septiembre\n\nSolicitudes de cambio de turno 2025-I: 3 al 21 de marzo\nSolicitudes de cambio de turno 2025-II: 25 de julio al 22 de agosto\n\nSolicitudes de reserva de matrícula 2025-I: 3 al 28 de marzo\nSolicitudes de reserva de matrícula 2025-II: 25 al 29 de agosto\n\nSolicitudes de reincorporación 2025-I: 3 al 21 de marzo\nSolicitudes de reincorporación 2025-II: 25 de julio al 22 de agosto\n\nSolicitudes de traslado 2025-I: 3 al 21 de marzo\nSolicitudes de traslado 2025-II: 25 de julio al 22 de agosto\n\nInicio de clases 2025-I: 7 de abril\nInicio de clases 2025-II: 1 de septiembre\n\n¿Necesitas información sobre algún trámite específico?",
+              false,
+              corrections
+            );
+          }
+          // Respuestas sobre el instituto
+          else if (
+            lowerMessage.includes("instituto") ||
+            lowerMessage.includes("iestp") ||
+            lowerMessage.includes("juan velasco")
+          ) {
+            addMessage(
+              'El Instituto de Educación Superior Tecnológico Público "Juan Velasco Alvarado" es una institución ubicada en Villa María del Triunfo, Lima, Perú. Ofrece cinco programas académicos técnicos profesionales:\n\n1. Arquitectura de Plataformas y STI\n2. Contabilidad\n3. Enfermería Técnica\n4. Mecatrónica y Mecánica Automotriz\n5. Técnica en Farmacia\n\nActualmente se encuentra en proceso de licenciamiento y es reconocido como líder en educación técnica en Lima Sur.\n\n¿Necesitas información sobre algún trámite específico?',
+              false,
+              corrections
+            );
+          }
+          // Respuesta para saludos
+          else if (
+            lowerMessage.includes("hola") ||
+            lowerMessage.includes("buenos") ||
+            lowerMessage.includes("saludos")
+          ) {
+            addMessage(
+              "¡Hola! Soy el asistente virtual del IESTP Juan Velasco Alvarado. Estoy aquí para ayudarte con información sobre trámites académicos y administrativos. Puedes consultarme sobre matrícula, traslados, reserva de matrícula, reincorporación, cambio de turno, titulación, entre otros. ¿En qué puedo asistirte hoy?",
+              false,
+              corrections
+            );
+          }
+          // Respuesta para agradecimientos
+          else if (
+            lowerMessage.includes("gracias") ||
+            lowerMessage.includes("adiós")
+          ) {
+            addMessage(
+              "¡Gracias por contactarme! Si tienes más preguntas sobre los trámites del IESTP Juan Velasco Alvarado, no dudes en consultarme. ¡Que tengas un excelente día!",
+              false,
+              corrections
+            );
+          }
+          // Respuesta por defecto
+          else {
+            addMessage(
+              "No he comprendido tu mensaje. ¿Podrías explicarlo de mejor manera? Puedes preguntarme sobre matrícula, traslados, reserva de matrícula, reincorporación, cambio de turno, titulación, costos, fechas o requisitos de los trámites del IESTP Juan Velasco Alvarado.",
+              false,
+              corrections
+            );
+          }
+        }
+
+        // ==============================
+        // INICIALIZACIÓN DEL CHATBOT
+        // ==============================
+        // Configura el chatbot y muestra el mensaje de bienvenida
+        function initChatbot() {
+          addMessage(
+            "¡Hola! Soy el asistente virtual del IESTP Juan Velasco Alvarado. Estoy aquí para ayudarte con información sobre trámites académicos y administrativos. ¿En qué puedo asistirte hoy?",
+            false
+          );
+        }
+
+        // ==============================
+        // EVENT LISTENERS
+        // ==============================
+        // Maneja las interacciones del usuario con el chatbot
+        if (minimizeChatbot) {
+          minimizeChatbot.addEventListener("click", (e) => {
+            e.stopPropagation(); // Evita que el clic se propague al header
+            chatbotContainer.classList.add("minimized");
+            isMinimized = true;
+          });
+        }
+
+        if (closeChatbot) {
+          closeChatbot.addEventListener("click", (e) => {
+            e.stopPropagation(); // Evita que el clic se propague al header
+            chatbotContainer.classList.add("hidden");
+            isHidden = true;
+          });
+        }
+
+        if (chatbotSend) {
+          chatbotSend.addEventListener("click", () => {
+            const message = chatbotInput.value.trim();
+            if (message) {
+              processUserMessage(message);
+              chatbotInput.value = "";
+            }
+          });
+        }
+
+        if (chatbotInput) {
+          chatbotInput.addEventListener("keypress", (e) => {
+            if (e.key === "Enter") {
+              const message = chatbotInput.value.trim();
+              if (message) {
+                processUserMessage(message);
+                chatbotInput.value = "";
+              }
+            }
+          });
+        }
+
+        if (chatbotSuggestions) {
+          chatbotSuggestions.addEventListener("click", (e) => {
+            if (e.target.classList.contains("suggestion-chip")) {
+              const suggestion = e.target.getAttribute("data-message");
+              if (suggestion) processUserMessage(suggestion);
+            }
+          });
+        }
+
+        // Inicializar el chatbot
+        initChatbot();
+      });
+    </script>
+  </body>
+</html>
